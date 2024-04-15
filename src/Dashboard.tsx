@@ -64,6 +64,18 @@ export const Dashboard = () => {
 		return params.get( 'showVersion' ) === 'false' ? false : true;
 	} );
 
+	const dynamicSort = ( field, sortOrder = 'asc' ) => {
+		return function ( a, b ) {
+			let result = 0;
+			if ( field === 'pluginName' ) {
+				result = a[ field ].localeCompare( b[ field ] );
+			} else {
+				result = a[ field ] - b[ field ];
+			}
+			return sortOrder === 'desc' ? -result : result;
+		};
+	};
+
 	let url = new URL( 'https://api.wordpress.org/plugins/info/1.2/' );
 	url.searchParams.append( 'action', 'query_plugins' );
 	url.searchParams.append( 'request[fields][banners]', 'true' );
@@ -78,38 +90,28 @@ export const Dashboard = () => {
 			.then( ( response ) => {
 				if ( ! response.ok ) {
 					throw new Error(
-						`This is an HTTP error: The status is ${ response.status }`
+						`HTTP error: The status is ${ response.status }`
 					);
 				}
 				return response.json();
 			} )
 			.then( ( data ) => {
 				plugins = data[ 'plugins' ];
-				if ( sortOrder === 'desc' ) {
-					switch ( sortField ) {
-						case 'activeInstalls': plugins.sort( ( a: any, b: any ) => ( a.active_installs < b.active_installs ? 1 : -1 ) ); break; // prettier-ignore
-						case 'downloads': plugins.sort( ( a: any, b: any ) => ( a.downloaded < b.downloaded ? 1 : -1 ) ); break; // prettier-ignore
-						case 'testedUpTo': plugins.sort( ( a: any, b: any ) => ( a.tested < b.tested ? 1 : -1 ) ); break; // prettier-ignore
-						case 'pluginName': plugins.sort( ( a: any, b: any ) => b.name.localeCompare( a.name ) ); break; // prettier-ignore
-						case 'rating': plugins.sort( ( a: any, b: any ) => ( a.rating < b.rating ? 1 : -1 ) ); break; // prettier-ignore
-						case 'numberOfRatings': plugins.sort( ( a: any, b: any ) => ( a.num_ratings < b.num_ratings ? 1 : -1 ) ); break; // prettier-ignore
-						case 'requiresAtLeast': plugins.sort( ( a: any, b: any ) => ( a.requires < b.requires ? 1 : -1 ) ); break; // prettier-ignore
-						case 'requiresPHP': plugins.sort( ( a: any, b: any ) => ( a.requires_php < b.requires_php ? 1 : -1 ) ); break; // prettier-ignore
-					}
-				} else {
-					switch ( sortField ) {
-						case 'activeInstalls': plugins.sort( ( a: any, b: any ) => ( a.active_installs > b.active_installs ? 1 : -1 ) ); break; // prettier-ignore
-						case 'downloads': plugins.sort( ( a: any, b: any ) => ( a.downloaded > b.downloaded ? 1 : -1 ) ); break; // prettier-ignore
-						case 'testedUpTo': plugins.sort( ( a: any, b: any ) => ( a.tested > b.tested ? 1 : -1 ) ); break; // prettier-ignore
-						case 'pluginName': plugins.sort( ( a: any, b: any ) => a.name.localeCompare( b.name ) ); break; // prettier-ignore
-						case 'rating': plugins.sort( ( a: any, b: any ) => ( a.rating > b.rating ? 1 : -1 ) ); break; // prettier-ignore
-						case 'numberOfRatings': plugins.sort( ( a: any, b: any ) => ( a.num_ratings > b.num_ratings ? 1 : -1 ) ); break; // prettier-ignore
-						case 'requiresAtLeast': plugins.sort( ( a: any, b: any ) => ( a.requires > b.requires ? 1 : -1 ) ); break; // prettier-ignore
-						case 'requiresPHP': plugins.sort( ( a: any, b: any ) => ( a.requires_php > b.requires_php ? 1 : -1 ) ); break; // prettier-ignore
-					}
-				}
+				const sortKeyMap = {
+					activeInstalls: 'active_installs',
+					downloads: 'downloaded',
+					testedUpTo: 'tested',
+					pluginName: 'name',
+					rating: 'rating',
+					numberOfRatings: 'num_ratings',
+					requiresAtLeast: 'requires',
+					requiresPHP: 'requires_php',
+				};
+				plugins.sort(
+					dynamicSort( sortKeyMap[ sortField ], sortOrder )
+				);
 
-				plugins.forEach( ( plugin: any ) => {
+				plugins.forEach( ( plugin ) => {
 					downloadCount += plugin.downloaded;
 					installCount += plugin.active_installs;
 				} );
