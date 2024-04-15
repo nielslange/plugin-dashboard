@@ -4,21 +4,65 @@ import { Card } from './Card';
 
 export const Dashboard = () => {
 	const [ data, setData ] = useState< any >( null );
-	const [ searchField, setSearchField ] = useState( 'SMNTCS' );
-	const [ sortField, setSortField ] = useState( 'downloads' );
-	const [ sortOrder, setSortOrder ] = useState( 'desc' );
-	const [ showActiveInstalls, setShowActiveInstalls ] = useState( true );
-	const [ showDownloads, setShowDownloads ] = useState( true );
-	const [ showTestedUpTo, setShowTestedUpTo ] = useState( true );
-	const [ showRequiresAtLeast, setShowRequiresAtLeast ] = useState( true );
-	const [ showRequiresPHP, setShowRequiresPHP ] = useState( true );
-	const [ showVersion, setShowVersion ] = useState( true );
-	const [ showRating, setShowRating ] = useState( true );
-	const [ showNumberOfRatings, setShowNumberOfRatings ] = useState( true );
-	const [ downloads, setDowloads ] = useState( 0 );
+	const [ downloads, setDownloads ] = useState( 0 );
 	const [ installs, setInstalls ] = useState( 0 );
 	const [ loading, setLoading ] = useState( true );
 	const [ error, setError ] = useState( null );
+
+	const [ searchField, setSearchField ] = useState( () => {
+		const params = new URLSearchParams( window.location.search );
+		return params.get( 'searchField' ) || 'SMNTCS';
+	} );
+
+	const [ sortField, setSortField ] = useState( () => {
+		const params = new URLSearchParams( window.location.search );
+		return params.get( 'sortField' ) || 'downloads';
+	} );
+
+	const [ sortOrder, setSortOrder ] = useState( () => {
+		const params = new URLSearchParams( window.location.search );
+		return params.get( 'sortOrder' ) || 'desc';
+	} );
+
+	const [ showActiveInstalls, setShowActiveInstalls ] = useState( () => {
+		const params = new URLSearchParams( window.location.search );
+		return params.get( 'showActiveInstalls' ) === 'false' ? false : true;
+	} );
+
+	const [ showDownloads, setShowDownloads ] = useState( () => {
+		const params = new URLSearchParams( window.location.search );
+		return params.get( 'showDownloads' ) === 'false' ? false : true;
+	} );
+
+	const [ showNumberOfRatings, setShowNumberOfRatings ] = useState( () => {
+		const params = new URLSearchParams( window.location.search );
+		return params.get( 'showNumberOfRatings' ) === 'false' ? false : true;
+	} );
+
+	const [ showRating, setShowRating ] = useState( () => {
+		const params = new URLSearchParams( window.location.search );
+		return params.get( 'showRating' ) === 'false' ? false : true;
+	} );
+
+	const [ showRequiresAtLeast, setShowRequiresAtLeast ] = useState( () => {
+		const params = new URLSearchParams( window.location.search );
+		return params.get( 'showRequiresAtLeast' ) === 'false' ? false : true;
+	} );
+
+	const [ showRequiresPHP, setShowRequiresPHP ] = useState( () => {
+		const params = new URLSearchParams( window.location.search );
+		return params.get( 'showRequiresPHP' ) === 'false' ? false : true;
+	} );
+
+	const [ showTestedUpTo, setShowTestedUpTo ] = useState( () => {
+		const params = new URLSearchParams( window.location.search );
+		return params.get( 'showTestedUpTo' ) === 'false' ? false : true;
+	} );
+
+	const [ showVersion, setShowVersion ] = useState( () => {
+		const params = new URLSearchParams( window.location.search );
+		return params.get( 'showVersion' ) === 'false' ? false : true;
+	} );
 
 	let url = new URL( 'https://api.wordpress.org/plugins/info/1.2/' );
 	url.searchParams.append( 'action', 'query_plugins' );
@@ -71,7 +115,7 @@ export const Dashboard = () => {
 				} );
 
 				setData( plugins );
-				setDowloads( downloadCount );
+				setDownloads( downloadCount );
 				setInstalls( installCount );
 				setError( null );
 			} )
@@ -84,49 +128,150 @@ export const Dashboard = () => {
 			} );
 	}, [ searchField, sortField, sortOrder ] );
 
-	const handelSearch = ( e: any ) => {
-		setSearchField( e.target.value );
+	const handleSearch = ( e: any ) => {
+		const newSearchField = e.target.value;
+		setSearchField( newSearchField );
+
+		const params = new URLSearchParams( window.location.search );
+		params.set( 'searchField', newSearchField );
+		window.history.replaceState(
+			{},
+			'',
+			`${ window.location.pathname }?${ params }`
+		);
 	};
 
-	const handelSortField = ( e: any ) => {
-		setSortField( e.target.value );
+	const handleSortField = ( e: React.ChangeEvent< HTMLSelectElement > ) => {
+		const newSortField = e.target.value;
+		setSortField( newSortField );
+
+		const params = new URLSearchParams( window.location.search );
+		params.set( 'sortField', newSortField );
+		window.history.replaceState(
+			{},
+			'',
+			`${ window.location.pathname }?${ params }`
+		);
 	};
 
-	const handelSortOrder = ( e: any ) => {
-		setSortOrder( e.target.value );
+	const handleSortOrder = ( e: any ) => {
+		const newSortOrder = e.target.value;
+		setSortOrder( newSortOrder );
+
+		const params = new URLSearchParams( window.location.search );
+		params.set( 'sortOrder', newSortOrder );
+		window.history.replaceState(
+			{},
+			'',
+			`${ window.location.pathname }?${ params }`
+		);
 	};
 
 	const toggleActiveInstalls = () => {
-		setShowActiveInstalls( ! showActiveInstalls );
+		const currentSetting = ! showActiveInstalls;
+		setShowActiveInstalls( currentSetting );
+
+		const params = new URLSearchParams( window.location.search );
+		params.set( 'showActiveInstalls', currentSetting.toString() );
+		window.history.replaceState(
+			{},
+			'',
+			`${ window.location.pathname }?${ params }`
+		);
 	};
 
 	const toggleDownloads = () => {
-		setShowDownloads( ! showDownloads );
-	};
+		const currentSetting = ! showDownloads;
+		setShowDownloads( currentSetting );
 
-	const toggleTestedUpTo = () => {
-		setShowTestedUpTo( ! showTestedUpTo );
-	};
-
-	const toggleRating = () => {
-		setShowRating( ! showRating );
+		const params = new URLSearchParams( window.location.search );
+		params.set( 'showDownloads', currentSetting.toString() );
+		window.history.replaceState(
+			{},
+			'',
+			`${ window.location.pathname }?${ params }`
+		);
 	};
 
 	const toggleNumberOfRatings = () => {
-		setShowNumberOfRatings( ! showNumberOfRatings );
+		const currentSetting = ! showNumberOfRatings;
+		setShowNumberOfRatings( currentSetting );
+
+		const params = new URLSearchParams( window.location.search );
+		params.set( 'showNumberOfRatings', currentSetting.toString() );
+		window.history.replaceState(
+			{},
+			'',
+			`${ window.location.pathname }?${ params }`
+		);
+	};
+
+	const toggleRating = () => {
+		const currentSetting = ! showRating;
+		setShowRating( currentSetting );
+
+		const params = new URLSearchParams( window.location.search );
+		params.set( 'showRating', currentSetting.toString() );
+		window.history.replaceState(
+			{},
+			'',
+			`${ window.location.pathname }?${ params }`
+		);
 	};
 
 	const toggleRequiresAtLeast = () => {
-		setShowRequiresAtLeast( ! showRequiresAtLeast );
+		const currentSetting = ! showRequiresAtLeast;
+		setShowRequiresAtLeast( currentSetting );
+
+		const params = new URLSearchParams( window.location.search );
+		params.set( 'showRequiresAtLeast', currentSetting.toString() );
+		window.history.replaceState(
+			{},
+			'',
+			`${ window.location.pathname }?${ params }`
+		);
 	};
 
 	const toggleRequiresPHP = () => {
-		setShowRequiresPHP( ! showRequiresPHP );
+		const currentSetting = ! showRequiresPHP;
+		setShowRequiresPHP( currentSetting );
+
+		const params = new URLSearchParams( window.location.search );
+		params.set( 'showRequiresPHP', currentSetting.toString() );
+		window.history.replaceState(
+			{},
+			'',
+			`${ window.location.pathname }?${ params }`
+		);
+	};
+
+	const toggleTestedUpTo = () => {
+		const currentSetting = ! showTestedUpTo;
+		setShowTestedUpTo( currentSetting );
+
+		const params = new URLSearchParams( window.location.search );
+		params.set( 'showTestedUpTo', currentSetting.toString() );
+		window.history.replaceState(
+			{},
+			'',
+			`${ window.location.pathname }?${ params }`
+		);
 	};
 
 	const toggleVersion = () => {
-		setShowVersion( ! showVersion );
+		const currentSetting = ! showVersion;
+		setShowVersion( currentSetting );
+
+		const params = new URLSearchParams( window.location.search );
+		params.set( 'showVersion', currentSetting.toString() );
+		window.history.replaceState(
+			{},
+			'',
+			`${ window.location.pathname }?${ params }`
+		);
 	};
+
+	console.log( { sortField } );
 
 	return (
 		<div className="container-fluid">
@@ -168,7 +313,7 @@ export const Dashboard = () => {
 											name="search"
 											id="search"
 											placeholder="plugin slug"
-											onChange={ handelSearch }
+											onChange={ handleSearch }
 											value={ searchField }
 										/>
 									</p>
@@ -183,7 +328,8 @@ export const Dashboard = () => {
 											className="form-select"
 											aria-label="Select sort field"
 											name="sortField"
-											onChange={ handelSortField }
+											onChange={ handleSortField }
+											value={ sortField }
 										>
 											<option value="activeInstalls">
 												active installs
@@ -216,7 +362,8 @@ export const Dashboard = () => {
 											className="form-select"
 											aria-label="Select sort order"
 											name="sortOrder"
-											onChange={ handelSortOrder }
+											onChange={ handleSortOrder }
+											value={ sortOrder }
 										>
 											<option value="desc">desc</option>
 											<option value="asc">asc</option>
