@@ -64,13 +64,45 @@ export const Dashboard = () => {
 		return params.get( 'showVersion' ) === 'false' ? false : true;
 	} );
 
+	const sortOptions = [
+		{
+			key: 'activeInstalls',
+			label: 'Active Installs',
+			visible: showActiveInstalls,
+		},
+		{ key: 'downloads', label: 'Downloads', visible: showDownloads },
+		{
+			key: 'numberOfRatings',
+			label: 'Number of Ratings',
+			visible: showNumberOfRatings,
+		},
+		{ key: 'pluginName', label: 'Plugin Name', visible: true }, // Always visible
+		{ key: 'rating', label: 'Rating', visible: showRating },
+		{
+			key: 'requiresAtLeast',
+			label: 'Required WordPress Version',
+			visible: showRequiresAtLeast,
+		},
+		{
+			key: 'requiresPHP',
+			label: 'Required PHP Version',
+			visible: showRequiresPHP,
+		},
+		{ key: 'testedUpTo', label: 'Tested Up To', visible: showTestedUpTo },
+		{ key: 'version', label: 'Version', visible: showVersion },
+	];
+
+	const visibleSortOptions = sortOptions.filter(
+		( option ) => option.visible
+	);
+
 	const dynamicSort = ( field, sortOrder = 'asc' ) => {
 		return function ( a, b ) {
 			let result = 0;
-			if ( field === 'pluginName' ) {
+			if ( field === 'pluginName' || field === 'version' ) {
 				result = a[ field ].localeCompare( b[ field ] );
 			} else {
-				result = a[ field ] - b[ field ];
+				result = parseFloat( a[ field ] ) - parseFloat( b[ field ] );
 			}
 			return sortOrder === 'desc' ? -result : result;
 		};
@@ -106,7 +138,9 @@ export const Dashboard = () => {
 					numberOfRatings: 'num_ratings',
 					requiresAtLeast: 'requires',
 					requiresPHP: 'requires_php',
+					version: 'version',
 				};
+
 				plugins.sort(
 					dynamicSort( sortKeyMap[ sortField ], sortOrder )
 				);
@@ -129,6 +163,22 @@ export const Dashboard = () => {
 				setLoading( false );
 			} );
 	}, [ searchField, sortField, sortOrder ] );
+
+	useEffect( () => {
+		if (
+			! visibleSortOptions.find( ( option ) => option.key === sortField )
+		) {
+			setSortField( visibleSortOptions[ 0 ].key );
+		}
+	}, [
+		showActiveInstalls,
+		showDownloads,
+		showNumberOfRatings,
+		showRating,
+		showRequiresAtLeast,
+		showRequiresPHP,
+		showTestedUpTo,
+	] );
 
 	const handleSearch = ( e: any ) => {
 		const newSearchField = e.target.value;
@@ -333,30 +383,16 @@ export const Dashboard = () => {
 											onChange={ handleSortField }
 											value={ sortField }
 										>
-											<option value="activeInstalls">
-												active installs
-											</option>
-											<option value="downloads">
-												downloads
-											</option>
-											<option value="numberOfRatings">
-												number of ratings
-											</option>
-											<option value="pluginName">
-												plugin name
-											</option>
-											<option value="rating">
-												rating
-											</option>
-											<option value="requiresAtLeast">
-												required WordPress version
-											</option>
-											<option value="requiresPHP">
-												required PHP version
-											</option>
-											<option value="testedUpTo">
-												tested up to
-											</option>
+											{ visibleSortOptions.map(
+												( option ) => (
+													<option
+														key={ option.key }
+														value={ option.key }
+													>
+														{ option.label }
+													</option>
+												)
+											) }
 										</select>
 									</p>
 									<p>
@@ -367,8 +403,8 @@ export const Dashboard = () => {
 											onChange={ handleSortOrder }
 											value={ sortOrder }
 										>
-											<option value="desc">desc</option>
-											<option value="asc">asc</option>
+											<option value="desc">↓ desc</option>
+											<option value="asc">↑ asc</option>
 										</select>
 									</p>
 								</form>
