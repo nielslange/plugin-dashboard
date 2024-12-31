@@ -1,9 +1,21 @@
-import { v4 as uuidv4 } from 'uuid';
 import { useState, useEffect } from 'react';
 import { Card } from './Card';
 
+interface Plugin {
+	name: string;
+	active_installs: number;
+	downloaded: number;
+	rating: number;
+	num_ratings: number;
+	requires: string;
+	requires_php: string;
+	tested: string;
+	version: string;
+	slug: string;
+}
+
 export const Dashboard = () => {
-	const [ data, setData ] = useState< any >( null );
+	const [ data, setData ] = useState< Plugin[] | null >( null );
 	const [ downloads, setDownloads ] = useState( 0 );
 	const [ installs, setInstalls ] = useState( 0 );
 	const [ loading, setLoading ] = useState( true );
@@ -96,8 +108,8 @@ export const Dashboard = () => {
 		( option ) => option.visible
 	);
 
-	const dynamicSort = ( field, sortOrder = 'asc' ) => {
-		return function ( a, b ) {
+	const dynamicSort = ( field: any, sortOrder = 'asc' ) => {
+		return function ( a: any, b: any ) {
 			let result = 0;
 			if ( field === 'pluginName' || field === 'version' ) {
 				result = a[ field ].localeCompare( b[ field ] );
@@ -129,7 +141,7 @@ export const Dashboard = () => {
 			} )
 			.then( ( data ) => {
 				plugins = data[ 'plugins' ];
-				const sortKeyMap = {
+				const sortKeyMap: { [ key: string ]: string } = {
 					activeInstalls: 'active_installs',
 					downloads: 'downloaded',
 					testedUpTo: 'tested',
@@ -145,7 +157,7 @@ export const Dashboard = () => {
 					dynamicSort( sortKeyMap[ sortField ], sortOrder )
 				);
 
-				plugins.forEach( ( plugin ) => {
+				plugins.forEach( ( plugin: Plugin ) => {
 					downloadCount += plugin.downloaded;
 					installCount += plugin.active_installs;
 				} );
@@ -180,7 +192,7 @@ export const Dashboard = () => {
 		showTestedUpTo,
 	] );
 
-	const handleSearch = ( e: any ) => {
+	const handleSearch = ( e: React.ChangeEvent< HTMLInputElement > ) => {
 		const newSearchField = e.target.value;
 		setSearchField( newSearchField );
 
@@ -206,7 +218,7 @@ export const Dashboard = () => {
 		);
 	};
 
-	const handleSortOrder = ( e: any ) => {
+	const handleSortOrder = ( e: React.ChangeEvent< HTMLSelectElement > ) => {
 		const newSortOrder = e.target.value;
 		setSortOrder( newSortOrder );
 
@@ -558,7 +570,7 @@ export const Dashboard = () => {
 								{ data.map( ( plugin: any ) => (
 									<Card
 										plugin={ plugin }
-										key={ uuidv4() }
+										key={ plugin.slug }
 										showActiveInstalls={
 											showActiveInstalls
 										}
